@@ -16,6 +16,7 @@ export default async function handler(req, res) {
       let scripture = await collection.findOne({ reference, version });
 
       if (!scripture) {
+        console.log(`Fetching scripture for ${reference} (${version}) from Bible Gateway`);
         // If not found in MongoDB, fetch from Bible Gateway
         const response = await axios.get(`https://www.biblegateway.com/passage/?search=${encodeURIComponent(reference)}&version=${version}`);
         const dom = new JSDOM(response.data);
@@ -25,10 +26,28 @@ export default async function handler(req, res) {
           const verses = passageContent.querySelectorAll('.text');
           let scriptureVerses = [];
 
-          verses.forEach((verse) => {
+          console.log(`Found ${verses.length} verse(s) for ${reference}`);
+
+          verses.forEach((verse, index) => {
             const verseNum = verse.querySelector('.versenum');
-            const number = verseNum ? verseNum.textContent.trim() : '';
-            const text = verse.textContent.replace(number, '').trim();
+            let number, text;
+
+            if (verseNum) {
+              number = verseNum.textContent.trim();
+              text = verse.textContent.replace(verseNum.textContent, '').trim();
+            } else {
+              // Handle single-verse references
+              const chapterNum = passageContent.querySelector('.chapternum');
+              if (chapterNum) {
+                number = reference.split(':')[1] || '1';
+                text = verse.textContent.replace(chapterNum.textContent, '').trim();
+              } else {
+                number = (index + 1).toString();
+                text = verse.textContent.trim();
+              }
+            }
+
+            console.log(`Verse ${number}: ${text.substring(0, 20)}...`);
             scriptureVerses.push({ number, text });
           });
 
@@ -36,7 +55,7 @@ export default async function handler(req, res) {
             reference,
             version,
             verses: scriptureVerses,
-            text: scriptureVerses.map(v => v.text).join(' ') // Add this line
+            text: scriptureVerses.map(v => `${v.number} ${v.text}`).join(' ')
           };
 
           // Store the fetched scripture in MongoDB

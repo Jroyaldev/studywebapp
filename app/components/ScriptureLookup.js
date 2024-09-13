@@ -64,7 +64,14 @@ export default function ScriptureLookup() {
     if (scripture.verses && Array.isArray(scripture.verses)) {
       return scripture.verses.map(renderVerse);
     } else if (scripture.text) {
-      return <p className={styles.scriptureText}>{scripture.text}</p>;
+      // If we only have text, split it into verses based on verse numbers
+      const verses = scripture.text.split(/(\d+)/).filter(Boolean);
+      return verses.map((part, index, array) => {
+        if (index % 2 === 0 && index + 1 < array.length) {
+          return renderVerse({ number: part, text: array[index + 1].trim() });
+        }
+        return null;
+      }).filter(Boolean);
     } else {
       return <p className={styles.error}>No scripture content available</p>;
     }
