@@ -5,7 +5,7 @@ import { extractScriptureReferences } from '../utils/bibleReferenceUtils';
 export default function ScriptureLookup() {
   const [inputReference, setInputReference] = useState('');
   const [parsedReferences, setParsedReferences] = useState([]);
-  const [translation, setTranslation] = useState('KJV');
+  const [version, setVersion] = useState('KJV');
   const [scriptures, setScriptures] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -15,7 +15,7 @@ export default function ScriptureLookup() {
     setParsedReferences(references);
   }, [inputReference]);
 
-  const handleLookup = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (parsedReferences.length === 0) {
       setError('Please enter valid scripture references');
@@ -28,9 +28,14 @@ export default function ScriptureLookup() {
 
     try {
       const results = await Promise.all(parsedReferences.map(async (reference) => {
-        const url = `/api/scripture?reference=${encodeURIComponent(reference)}&translation=${translation}`;
-        console.log('Fetching from URL:', url);
-        const response = await fetch(url);
+        const response = await fetch('/api/lookup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ reference, version }),
+        });
+
         if (!response.ok) {
           throw new Error(`Failed to fetch scripture for ${reference}`);
         }
@@ -48,30 +53,47 @@ export default function ScriptureLookup() {
 
   const renderVerse = (verse) => {
     return (
-      <div key={verse.reference} className={styles.verseContainer}>
-        <span className={styles.verseNumber}>{verse.reference.split(':').pop()}</span>
-        <span className={styles.verseContent}>{verse.content}</span>
+      <div key={verse.number} className={styles.verseContainer}>
+        <span className={styles.verseNumber}>{verse.number}</span>
+        <span className={styles.verseContent}>{verse.text}</span>
       </div>
     );
+  };
+
+  const renderScripture = (scripture) => {
+    if (scripture.verses && Array.isArray(scripture.verses)) {
+      return scripture.verses.map(renderVerse);
+    } else if (scripture.text) {
+      return <p className={styles.scriptureText}>{scripture.text}</p>;
+    } else {
+      return <p className={styles.error}>No scripture content available</p>;
+    }
   };
 
   return (
     <div className={styles.card}>
       <h2>Scripture Lookup</h2>
-      <form onSubmit={handleLookup} className={styles.lookupForm}>
-        <input
-          type="text"
-          value={inputReference}
-          onChange={(e) => setInputReference(e.target.value)}
-          placeholder="Enter scripture references (e.g., John 3:16; Rom 5:1-5)"
-          required
-        />
-        <select value={translation} onChange={(e) => setTranslation(e.target.value)}>
-          <option value="KJV">KJV</option>
-          <option value="NLT">NLT</option>
-        </select>
-        <button type="submit" disabled={isLoading || parsedReferences.length === 0}>
-          {isLoading ? 'Loading...' : 'Lookup'}
+      <form onSubmit={handleSubmit} className={styles.lookupForm}>
+        <div className={styles.inputGroup}>
+          <input
+            type="text"
+            value={inputReference}
+            onChange={(e) => setInputReference(e.target.value)}
+            placeholder="Enter scripture references (e.g., John 3:16; Rom 5:1-5)"
+            required
+            className={styles.referenceInput}
+          />
+          <select
+            value={version}
+            onChange={(e) => setVersion(e.target.value)}
+            className={styles.versionSelect}
+          >
+            <option value="KJV">KJV</option>
+            <option value="NLT">NLT</option>
+          </select>
+        </div>
+        <button type="submit" disabled={isLoading || parsedReferences.length === 0} className={styles.lookupButton}>
+          {isLoading ? 'Loading...' : 'Look up'}
         </button>
       </form>
       {parsedReferences.length > 0 && (
@@ -80,14 +102,8 @@ export default function ScriptureLookup() {
       {error && <p className={styles.error}>{error}</p>}
       {scriptures.map((scripture, index) => (
         <div key={index} className={styles.scriptureDisplay}>
-          <h3 className={styles.scriptureReference}>{scripture.reference}</h3>
-          {scripture.type === 'verse' ? (
-            renderVerse(scripture.verses[0])
-          ) : (
-            <>
-              {scripture.verses && scripture.verses.map(renderVerse)}
-            </>
-          )}
+          <h3 className={styles.scriptureReference}>{scripture.reference} ({scripture.version})</h3>
+          {renderScripture(scripture)}
         </div>
       ))}
     </div>
