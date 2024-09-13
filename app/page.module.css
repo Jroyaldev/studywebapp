@@ -91,11 +91,11 @@
 
 .scriptureDisplay {
   margin-top: 1rem;
-  padding: 2rem;
+  padding: 1rem;
   background-color: #f8f9fa;
   border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  max-height: 500px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
   overflow-y: auto;
 }
 
@@ -156,4 +156,10 @@
   font-size: 1rem;
   background-color: white;
   margin-right: 0.5rem;
+}
+
+.parsedReference {
+  font-style: italic;
+  color: #666;
+  margin-top: 0.5rem;
 }
