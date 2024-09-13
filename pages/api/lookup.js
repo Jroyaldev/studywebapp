@@ -10,12 +10,12 @@ export default async function handler(req, res) {
     try {
       client = await MongoClient.connect(process.env.MONGODB_URI);
       const db = client.db('scripture_db');
-      const collection = db.collection('scriptures');
+      const collection = db.collection('verses');
 
-      // Try to find the scripture in MongoDB first
-      let scripture = await collection.findOne({ reference, version });
+      // Try to find the verses in MongoDB first
+      let verses = await collection.find({ reference: { $regex: new RegExp('^' + reference) }, version }).toArray();
 
-      if (!scripture) {
+      if (verses.length === 0) {
         console.log(`Fetching scripture for ${reference} (${version}) from Bible Gateway`);
         // If not found in MongoDB, fetch from Bible Gateway
         const response = await axios.get(`https://www.biblegateway.com/passage/?search=${encodeURIComponent(reference)}&version=${version}`);
@@ -23,12 +23,12 @@ export default async function handler(req, res) {
         const passageContent = dom.window.document.querySelector('.passage-content');
 
         if (passageContent) {
-          const verses = passageContent.querySelectorAll('.text');
-          let scriptureVerses = [];
+          const verseElements = passageContent.querySelectorAll('.text');
+          verses = [];
 
-          console.log(`Found ${verses.length} verse(s) for ${reference}`);
+          console.log(`Found ${verseElements.length} verse(s) for ${reference}`);
 
-          verses.forEach((verse, index) => {
+          verseElements.forEach((verse, index) => {
             const verseNum = verse.querySelector('.versenum');
             let number, text;
 
@@ -47,23 +47,28 @@ export default async function handler(req, res) {
               }
             }
 
-            console.log(`Verse ${number}: ${text.substring(0, 20)}...`);
-            scriptureVerses.push({ number, text });
+            const [book, chapter] = reference.split(':')[0].split(' ');
+            const verseReference = `${book} ${chapter}:${number}`;
+
+            console.log(`Verse ${verseReference}: ${text.substring(0, 20)}...`);
+            verses.push({ reference: verseReference, version, number, text });
           });
 
-          scripture = {
-            reference,
-            version,
-            verses: scriptureVerses,
-            text: scriptureVerses.map(v => `${v.number} ${v.text}`).join(' ')
-          };
-
-          // Store the fetched scripture in MongoDB
-          await collection.insertOne(scripture);
+          // Store the fetched verses in MongoDB
+          if (verses.length > 0) {
+            await collection.insertMany(verses);
+          }
         } else {
           throw new Error('Scripture not found on Bible Gateway');
         }
       }
+
+      const scripture = {
+        reference,
+        version,
+        verses,
+        text: verses.map(v => `${v.number} ${v.text}`).join(' ')
+      };
 
       res.status(200).json(scripture);
     } catch (error) {
