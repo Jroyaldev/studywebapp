@@ -6,7 +6,6 @@ export default function ScriptureLookup() {
   const [inputReference, setInputReference] = useState('');
   const [parsedReferences, setParsedReferences] = useState([]);
   const [version, setVersion] = useState('KJV');
-  const [includeHeadings, setIncludeHeadings] = useState(true);
   const [scriptures, setScriptures] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -34,7 +33,7 @@ export default function ScriptureLookup() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ reference, version, includeHeadings }),
+          body: JSON.stringify({ reference, version }),
         });
 
         if (!response.ok) {
@@ -71,7 +70,7 @@ export default function ScriptureLookup() {
     <div className={styles.card}>
       <h2>Scripture Lookup</h2>
       <form onSubmit={handleSubmit} className={styles.lookupForm}>
-        <div className={styles.inputGroup}>
+        <div className={styles.inputContainer}>
           <input
             type="text"
             value={inputReference}
@@ -88,15 +87,6 @@ export default function ScriptureLookup() {
             <option value="KJV">KJV</option>
             <option value="NLT">NLT</option>
           </select>
-        </div>
-        <div className={styles.checkboxGroup}>
-          <input
-            type="checkbox"
-            id="includeHeadings"
-            checked={includeHeadings}
-            onChange={(e) => setIncludeHeadings(e.target.checked)}
-          />
-          <label htmlFor="includeHeadings">Include Headings</label>
         </div>
         <button type="submit" disabled={isLoading || parsedReferences.length === 0} className={styles.lookupButton}>
           {isLoading ? 'Loading...' : 'Look up'}
