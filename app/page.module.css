@@ -210,3 +210,12 @@
   margin-right: 0.5rem;
 }
 
+.scriptureHeading {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: bold;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+

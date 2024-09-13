@@ -4,7 +4,7 @@ import { JSDOM } from 'jsdom';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { reference, version } = req.body;
+    const { reference, version, includeHeadings = true } = req.body;
 
     let client;
     try {
@@ -17,60 +17,74 @@ export default async function handler(req, res) {
 
       if (verses.length === 0) {
         console.log(`Fetching scripture for ${reference} (${version}) from Bible Gateway`);
-        // If not found in MongoDB, fetch from Bible Gateway
         const response = await axios.get(`https://www.biblegateway.com/passage/?search=${encodeURIComponent(reference)}&version=${version}`);
         const dom = new JSDOM(response.data);
         const passageContent = dom.window.document.querySelector('.passage-content');
 
         if (passageContent) {
-          const verseElements = passageContent.querySelectorAll('.text');
-          verses = [];
+          let scriptureContent = [];
+          let currentVerseNumber = 0;
 
-          console.log(`Found ${verseElements.length} verse(s) for ${reference}`);
-
-          verseElements.forEach((verse, index) => {
-            const verseNum = verse.querySelector('.versenum');
-            let number, text;
-
-            if (verseNum) {
-              number = verseNum.textContent.trim();
-              text = verse.textContent.replace(verseNum.textContent, '').trim();
+          passageContent.querySelectorAll('p, .heading').forEach((element) => {
+            if (element.classList.contains('heading') && includeHeadings) {
+              scriptureContent.push({ type: 'heading', text: element.textContent.trim() });
             } else {
-              // Handle single-verse references
-              const chapterNum = passageContent.querySelector('.chapternum');
-              if (chapterNum) {
-                number = reference.split(':')[1] || '1';
-                text = verse.textContent.replace(chapterNum.textContent, '').trim();
-              } else {
-                number = (index + 1).toString();
-                text = verse.textContent.trim();
+              const verseNum = element.querySelector('.versenum');
+              const chapterNum = element.querySelector('.chapternum');
+              let text = element.textContent.trim();
+
+              if (verseNum) {
+                currentVerseNumber = parseInt(verseNum.textContent.trim(), 10);
+                text = text.replace(verseNum.textContent, '').trim();
+              } else if (chapterNum) {
+                currentVerseNumber = 1;
+                text = text.replace(chapterNum.textContent, '').trim();
+              }
+
+              if (currentVerseNumber > 0) {
+                scriptureContent.push({ type: 'verse', number: currentVerseNumber, text });
               }
             }
-
-            const [book, chapter] = reference.split(':')[0].split(' ');
-            const verseReference = `${book} ${chapter}:${number}`;
-
-            console.log(`Verse ${verseReference}: ${text.substring(0, 20)}...`);
-            verses.push({ reference: verseReference, version, number, text });
           });
 
           // Store the fetched verses in MongoDB
-          if (verses.length > 0) {
-            await collection.insertMany(verses);
+          const versesToStore = scriptureContent.filter(item => item.type === 'verse').map(v => {
+            const baseReference = reference.split(':')[0]; // This gets just the book and chapter
+            return {
+              reference: `${baseReference}:${v.number}`,
+              version,
+              number: v.number,
+              text: v.text
+            };
+          });
+          
+          if (versesToStore.length > 0) {
+            await collection.insertMany(versesToStore);
           }
+
+          const scripture = {
+            reference,
+            version,
+            content: scriptureContent,
+            text: scriptureContent.map(item => 
+              item.type === 'heading' ? item.text : `${item.number} ${item.text}`
+            ).join(' ')
+          };
+
+          res.status(200).json(scripture);
         } else {
           throw new Error('Scripture not found on Bible Gateway');
         }
+      } else {
+        // If verses were found in MongoDB, format them correctly
+        const scripture = {
+          reference,
+          version,
+          content: verses.map(v => ({ type: 'verse', number: v.number, text: v.text })),
+          text: verses.map(v => `${v.number} ${v.text}`).join(' ')
+        };
+        res.status(200).json(scripture);
       }
-
-      const scripture = {
-        reference,
-        version,
-        verses,
-        text: verses.map(v => `${v.number} ${v.text}`).join(' ')
-      };
-
-      res.status(200).json(scripture);
     } catch (error) {
       console.error('Error:', error);
       res.status(500).json({ error: `Error fetching scripture: ${error.message}` });

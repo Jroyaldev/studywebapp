@@ -6,6 +6,7 @@ export default function ScriptureLookup() {
   const [inputReference, setInputReference] = useState('');
   const [parsedReferences, setParsedReferences] = useState([]);
   const [version, setVersion] = useState('KJV');
+  const [includeHeadings, setIncludeHeadings] = useState(true);
   const [scriptures, setScriptures] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -33,7 +34,7 @@ export default function ScriptureLookup() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ reference, version }),
+          body: JSON.stringify({ reference, version, includeHeadings }),
         });
 
         if (!response.ok) {
@@ -51,30 +52,19 @@ export default function ScriptureLookup() {
     }
   };
 
-  const renderVerse = (verse) => {
-    return (
-      <div key={verse.number} className={styles.verseContainer}>
-        <span className={styles.verseNumber}>{verse.number}</span>
-        <span className={styles.verseContent}>{verse.text}</span>
-      </div>
-    );
-  };
-
-  const renderScripture = (scripture) => {
-    if (scripture.verses && Array.isArray(scripture.verses)) {
-      return scripture.verses.map(renderVerse);
-    } else if (scripture.text) {
-      // If we only have text, split it into verses based on verse numbers
-      const verses = scripture.text.split(/(\d+)/).filter(Boolean);
-      return verses.map((part, index, array) => {
-        if (index % 2 === 0 && index + 1 < array.length) {
-          return renderVerse({ number: part, text: array[index + 1].trim() });
-        }
-        return null;
-      }).filter(Boolean);
-    } else {
-      return <p className={styles.error}>No scripture content available</p>;
-    }
+  const renderScriptureContent = (content) => {
+    return content.map((item, index) => {
+      if (item.type === 'heading') {
+        return <h4 key={`heading-${index}`} className={styles.scriptureHeading}>{item.text}</h4>;
+      } else {
+        return (
+          <div key={`verse-${item.number}`} className={styles.verseContainer}>
+            <span className={styles.verseNumber}>{item.number}</span>
+            <span className={styles.verseContent}>{item.text}</span>
+          </div>
+        );
+      }
+    });
   };
 
   return (
@@ -99,6 +89,15 @@ export default function ScriptureLookup() {
             <option value="NLT">NLT</option>
           </select>
         </div>
+        <div className={styles.checkboxGroup}>
+          <input
+            type="checkbox"
+            id="includeHeadings"
+            checked={includeHeadings}
+            onChange={(e) => setIncludeHeadings(e.target.checked)}
+          />
+          <label htmlFor="includeHeadings">Include Headings</label>
+        </div>
         <button type="submit" disabled={isLoading || parsedReferences.length === 0} className={styles.lookupButton}>
           {isLoading ? 'Loading...' : 'Look up'}
         </button>
@@ -110,7 +109,7 @@ export default function ScriptureLookup() {
       {scriptures.map((scripture, index) => (
         <div key={index} className={styles.scriptureDisplay}>
           <h3 className={styles.scriptureReference}>{scripture.reference} ({scripture.version})</h3>
-          {renderScripture(scripture)}
+          {renderScriptureContent(scripture.content)}
         </div>
       ))}
     </div>
