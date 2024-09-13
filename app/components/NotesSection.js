@@ -28,7 +28,8 @@ export default function NotesSection({ setDynamicInfo }) {
         value={notes}
         onChange={handleNotesChange}
         placeholder="Enter your study notes here..."
-        rows={5}
+        rows={8}
+        className={styles.notesTextarea}
       />
     </div>
   );

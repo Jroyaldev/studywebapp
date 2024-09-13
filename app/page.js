@@ -11,8 +11,10 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
-      <h1 className={styles.title}>StudyLink</h1>
-      <p className={styles.subtitle}>Your AI-powered Bible study companion</p>
+      <header className={styles.header}>
+        <h1 className={styles.title}>StudyLink</h1>
+        <p className={styles.subtitle}>Your AI-powered Bible study companion</p>
+      </header>
       <div className={styles.layout}>
         <div className={styles.mainContent}>
           <ScriptureLookup />
