@@ -1,11 +1,14 @@
 'use client'
 
+import { useState } from 'react';
 import ScriptureLookup from './components/ScriptureLookup';
 import NotesSection from './components/NotesSection';
 import DynamicInfo from './components/DynamicInfo';
 import styles from './page.module.css';
 
 export default function Home() {
+  const [dynamicInfo, setDynamicInfo] = useState('');
+
   return (
     <main className={styles.main}>
       <h1 className={styles.title}>StudyLink</h1>
@@ -13,10 +16,10 @@ export default function Home() {
       <div className={styles.layout}>
         <div className={styles.mainContent}>
           <ScriptureLookup />
-          <NotesSection />
+          <NotesSection setDynamicInfo={setDynamicInfo} />
         </div>
         <div className={styles.sideContent}>
-          <DynamicInfo />
+          <DynamicInfo info={dynamicInfo} />
         </div>
       </div>
     </main>

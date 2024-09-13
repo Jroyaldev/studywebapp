@@ -1,12 +1,10 @@
 import styles from '../page.module.css';
 
 export default function DynamicInfo({ info }) {
-  if (!info) return null;
-
   return (
-    <div className={styles.dynamicInfo}>
-      <h3>AI Insights</h3>
-      <p>{info}</p>
+    <div className={styles.card}>
+      <h2>Dynamic Information</h2>
+      <p>{info || 'No information available yet. Start typing in the notes section to generate insights.'}</p>
     </div>
   );
 }
