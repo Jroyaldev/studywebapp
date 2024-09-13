@@ -75,7 +75,7 @@ export default function ScriptureLookup() {
         </button>
       </form>
       {parsedReferences.length > 0 && (
-        <p className={styles.parsedReference}>Parsed References: {parsedReferences.join('; ')}</p>
+        <p className={styles.parsedReference}>References: {parsedReferences.join('; ')}</p>
       )}
       {error && <p className={styles.error}>{error}</p>}
       {scriptures.map((scripture, index) => (
