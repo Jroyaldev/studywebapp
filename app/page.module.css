@@ -1,74 +1,49 @@
 .main {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background-color: #ffffff;
+  padding: 40px 20px;
 }
 
-.header {
-  text-align: center;
-  padding: 2rem 0;
-  background-color: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+.header, .footer {
+  background-color: #ffffff;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .title {
-  font-size: 3.5rem;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(45deg, #3a7bd5, #00d2ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 2rem;
+  color: #2c3e50;
+  margin-bottom: 8px;
 }
 
 .subtitle {
-  font-size: 1.2rem;
-  color: #555;
+  font-size: 1rem;
+  color: #7f8c8d;
+  margin-bottom: 20px;
 }
 
 .layout {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
-  padding: 2rem;
-  max-width: 1600px;
-  margin: 0 auto;
-}
-
-.mainContent {
-  flex: 3;
-  min-width: 300px;
-}
-
-.sideContent {
-  flex: 1;
-  min-width: 250px;
+  gap: 20px;
+  padding: 1.5rem;
+  flex-wrap: wrap; /* Allows items to wrap on smaller screens */
 }
 
 .card {
-  background-color: white;
-  border-radius: 15px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
-  margin-bottom: 2rem;
-  transition: all 0.3s ease;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
-.card h2 {
-  color: #3a7bd5;
-  margin-bottom: 1.5rem;
-  font-size: 1.8rem;
-}
-
-/* Add more specific styles for ScriptureLookup, NotesSection, and DynamicInfo components */
-
-.lookupForm {
+.lookupForm, .form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -76,83 +51,49 @@
 
 .inputContainer {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  flex-wrap: wrap; /* Allows inputs to wrap on smaller screens */
 }
 
-.referenceInput {
-  flex-grow: 1;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
+.referenceInput, .versionSelect, .input, .notesTextarea {
+  padding: 0.6rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.versionSelect {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
-  background-color: white;
-}
-
-.lookupButton {
-  align-self: flex-start;
-  background-color: #3a7bd5;
-  color: white;
+.lookupButton, .button {
+  background-color: #2c3e50;
+  color: #ffffff;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 5px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
-.lookupButton:hover {
-  background-color: #2c5ea5;
-}
-
-.notesTextarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
-  resize: vertical;
-}
-
-.dynamicInfoText {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: #333;
+.lookupButton:hover, .button:hover {
+  background-color: #1a252f;
 }
 
 .scriptureDisplay {
-  margin-top: 1rem;
+  background-color: #f0f0f0;
+  border-radius: 6px;
   padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  max-height: 400px;
+  max-height: 350px;
   overflow-y: auto;
 }
 
-.scriptureReference {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
+/* Responsive Design for Layout */
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
 
-.verseContainer {
-  margin-bottom: 0.5rem;
-}
-
-.verseNumber {
-  font-weight: bold;
-  margin-right: 0.5rem;
-  color: #3a7bd5;
-}
-
-.verseContent {
-  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+  .mainContent, .sideContent {
+    width: 100%;
+  }
 }
 
